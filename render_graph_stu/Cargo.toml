@@ -1,8 +1,8 @@
 [package]
-name = "base_stu"
+name = "render_graph_stu"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 bevy = { workspace = true }
-wgpu = "23"
+bevy_mod_debugdump = "0.12"

@@ -1,5 +1,12 @@
 {
     "cSpell.words": [
-        "srgba"
+        "Aabb",
+        "debugdump",
+        "multisample",
+        "Srgb",
+        "srgba",
+        "Tonemapping",
+        "Unorm",
+        "wgpu"
     ]
 }

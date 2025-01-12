@@ -64,7 +64,7 @@ fn greet_people(query: Query<(Entity, &Name), With<Name>>) {
 
 fn update_people(mut query: Query<&mut Name, With<Person>>) {
     for mut name in &mut query {
-        name.0.push_str("!");
+        name.0.push('!');
     }
 }
 /// `Local`在每个`System`中都是唯一的，因此可以用来存储系统的局部状态

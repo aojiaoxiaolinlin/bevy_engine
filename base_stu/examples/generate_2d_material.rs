@@ -9,9 +9,9 @@ use bevy::{
         Color, ColorToComponents,
     },
     math::Vec3,
-    prelude::{default, Camera2dBundle, Commands, Image, Mesh, Rectangle, ResMut, Transform},
+    prelude::{Camera2d, Commands, Image, Mesh, Mesh2d, Rectangle, ResMut, Transform},
     render::render_asset::RenderAssetUsages,
-    sprite::{ColorMaterial, MaterialMesh2dBundle},
+    sprite::{ColorMaterial, MeshMaterial2d},
     DefaultPlugins,
 };
 
@@ -58,17 +58,16 @@ fn setup(
     );
 
     let texture = images.add(texture);
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: meshes.add(mesh).into(),
-        transform: Transform::from_scale(Vec3::splat(128.)),
-        material: materials.add(ColorMaterial {
+    commands.spawn((
+        Mesh2d(meshes.add(mesh)),
+        MeshMaterial2d(materials.add(ColorMaterial {
             texture: Some(texture),
             ..Default::default()
-        }),
-        ..Default::default()
-    });
+        })),
+        Transform::from_scale(Vec3::splat(128.)),
+    ));
     let mut rect = Mesh::from(Rectangle::default());
     let colors = vec![
         Color::srgba_u8(216, 115, 15, 255)
@@ -85,13 +84,11 @@ fn setup(
             .to_f32_array(),
     ];
     rect.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: meshes.add(rect).into(),
-        material: materials.add(ColorMaterial::default()),
-        transform: Transform::from_scale(Vec3::splat(256.))
-            .with_translation(Vec3::new(256., 0., 0.)),
-        ..default()
-    });
+    commands.spawn((
+        Mesh2d(meshes.add(rect)),
+        MeshMaterial2d(materials.add(ColorMaterial::default())),
+        Transform::from_scale(Vec3::splat(256.)).with_translation(Vec3::new(256., 0., 0.)),
+    ));
 
     let mut rect = Mesh::from(Rectangle::default());
     rect.insert_attribute(
@@ -103,11 +100,9 @@ fn setup(
             PURPLE.to_f32_array(),
         ],
     );
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: meshes.add(rect).into(),
-        material: materials.add(ColorMaterial::default()),
-        transform: Transform::from_scale(Vec3::splat(256.))
-            .with_translation(Vec3::new(512., 0., 0.)),
-        ..default()
-    });
+    commands.spawn((
+        Mesh2d(meshes.add(rect)),
+        MeshMaterial2d(materials.add(ColorMaterial::default())),
+        Transform::from_scale(Vec3::splat(256.)).with_translation(Vec3::new(512., 0., 0.)),
+    ));
 }
