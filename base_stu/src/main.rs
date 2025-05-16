@@ -1,6 +1,7 @@
 use bevy::{
     app::{App, Startup, Update},
-    prelude::{Commands, Component, Entity, IntoSystemConfigs, Local, Query, SystemSet, With},
+    ecs::schedule::IntoScheduleConfigs,
+    prelude::{Commands, Component, Entity, Local, Query, SystemSet, With},
 };
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 struct MySystemSet;

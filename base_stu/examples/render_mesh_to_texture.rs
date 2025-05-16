@@ -8,15 +8,17 @@ use bevy::{
     math::Vec3,
     prelude::{Camera, Camera2d, Commands, Image, Mesh, Mesh2d, ResMut, Transform},
     render::{
-        mesh::{Indices, MeshAabb},
+        mesh::{Indices, MeshAabb, PrimitiveTopology},
         primitives::Aabb,
         render_asset::RenderAssetUsages,
+        render_resource::{
+            Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+        },
         view::RenderLayers,
     },
     sprite::{AlphaMode2d, ColorMaterial, MeshMaterial2d},
     DefaultPlugins,
 };
-use wgpu::{Extent3d, PrimitiveTopology};
 
 fn main() {
     App::new()
@@ -68,16 +70,16 @@ fn setup(
         ..Default::default()
     };
     let mut texture = Image {
-        texture_descriptor: wgpu::TextureDescriptor {
+        texture_descriptor: TextureDescriptor {
             label: Some("texture"),
             size,
             mip_level_count: 1,
             sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsages::TEXTURE_BINDING
-                | wgpu::TextureUsages::COPY_SRC
-                | wgpu::TextureUsages::RENDER_ATTACHMENT,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::Rgba8UnormSrgb,
+            usage: TextureUsages::TEXTURE_BINDING
+                | TextureUsages::COPY_SRC
+                | TextureUsages::RENDER_ATTACHMENT,
             view_formats: &[],
         },
         ..Default::default()
@@ -116,6 +118,7 @@ fn setup(
             texture: Some(image_handle),
             color: Color::WHITE,
             alpha_mode: AlphaMode2d::Blend,
+            ..Default::default()
         })),
         Mesh2d(meshes.add(mesh)),
         Transform::from_scale(Vec3::splat(4.0)),

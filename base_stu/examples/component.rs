@@ -1,16 +1,19 @@
 use bevy::{
     app::{App, Startup, Update},
-    prelude::{Bundle, Commands, Component, Entity, IntoSystemConfigs, Query, With},
+    ecs::schedule::IntoScheduleConfigs,
+    prelude::{Bundle, Commands, Component, Entity, Query, With},
 };
 
 #[derive(Component, Default)]
 struct Person {
     name: String,
 }
+
 #[derive(Component, Default)]
 struct Name {
     name: String,
 }
+
 #[derive(Bundle, Default)]
 struct PersonBundle {
     name: Name,
@@ -34,7 +37,8 @@ fn setup(mut commands: Commands) {
         },
     });
 }
-fn add_person(mut commands: Commands, query: Query<Entity, With<Name>>) {
+
+fn add_person(mut commands: Commands, _query: Query<Entity, With<Name>>) {
     // query.iter().for_each(|entity| {
     //     commands.entity(entity).insert(Person {
     //         name: "person2".to_string(),
@@ -44,6 +48,7 @@ fn add_person(mut commands: Commands, query: Query<Entity, With<Name>>) {
         name: "person3".to_string(),
     });
 }
+
 fn query_component(query: Query<&Name>, query_person: Query<&Person>) {
     query.iter().for_each(|name| {
         println!("name:{}", name.name);

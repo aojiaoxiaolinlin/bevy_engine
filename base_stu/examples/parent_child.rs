@@ -2,22 +2,10 @@ use bevy::{
     color::palettes::css::{BLUE, RED},
     prelude::*,
 };
-#[derive(Default)]
-struct Count(f32);
 fn main() {
-    // 全局变量
-    let mut count = Count::default();
     App::new()
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, setup)
-        .add_systems(
-            Update,
-            move |commands: Commands,
-                  meshes: ResMut<Assets<Mesh>>,
-                  materials: ResMut<Assets<ColorMaterial>>| {
-                update_spawn(commands, meshes, materials, &mut count);
-            },
-        )
         .run();
 }
 
@@ -51,18 +39,4 @@ fn setup(
                 Transform::from_translation(Vec3::new(-1., 0., 0.)),
             ));
         });
-}
-
-fn update_spawn(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    count: &mut Count,
-) {
-    count.0 += 1.0;
-    commands.spawn((
-        Mesh2d(meshes.add(Mesh::from(Rectangle::default()))),
-        MeshMaterial2d(materials.add(Color::from(RED))),
-        Transform::from_translation(Vec3::new(-count.0, 0., 0.)),
-    ));
 }

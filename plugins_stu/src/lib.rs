@@ -3,8 +3,9 @@ use bevy::{
     ecs::{
         component::Component,
         query::With,
-        schedule::IntoSystemConfigs,
-        system::{Commands, Query, Res, ResMut, Resource},
+        resource::Resource,
+        schedule::IntoScheduleConfigs,
+        system::{Commands, Query, Res, ResMut},
     },
     time::{Time, Timer, TimerMode},
 };
@@ -34,9 +35,8 @@ fn greet_people(time: Res<Time>, mut timer: ResMut<GreetTimer>, query: Query<&Na
 // 自定义插件
 impl Plugin for HelloPlugin {
     fn build(&self, app: &mut App) {
-        app
-			.insert_resource(GreetTimer(Timer::from_seconds(2.0, TimerMode::Repeating)))
-			.add_systems(Startup, add_people)
+        app.insert_resource(GreetTimer(Timer::from_seconds(2.0, TimerMode::Repeating)))
+            .add_systems(Startup, add_people)
             .add_systems(Update, (greet_people).chain());
     }
 }

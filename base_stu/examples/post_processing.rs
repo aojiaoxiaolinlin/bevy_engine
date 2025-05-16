@@ -18,7 +18,10 @@ use bevy::{
         render_resource::{
             binding_types::{sampler, texture_2d},
             BindGroupEntries, BindGroupLayout, BindGroupLayoutEntries, CachedRenderPipelineId,
-            FragmentState, PipelineCache, RenderPipelineDescriptor, Sampler,
+            ColorTargetState, ColorWrites, FragmentState, MultisampleState, Operations,
+            PipelineCache, PrimitiveState, RenderPassColorAttachment, RenderPassDescriptor,
+            RenderPipelineDescriptor, Sampler, SamplerBindingType, SamplerDescriptor, ShaderStages,
+            TextureFormat, TextureSampleType,
         },
         renderer::RenderDevice,
         view::ViewTarget,
@@ -27,10 +30,7 @@ use bevy::{
     sprite::{ColorMaterial, MeshMaterial2d},
     DefaultPlugins,
 };
-use wgpu::{
-    ColorTargetState, ColorWrites, MultisampleState, Operations, PrimitiveState,
-    RenderPassColorAttachment, RenderPassDescriptor, ShaderStages,
-};
+
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, PostProcessPlugin))
@@ -66,13 +66,13 @@ impl FromWorld for PostProcessPipeline {
             &BindGroupLayoutEntries::sequential(
                 ShaderStages::VERTEX_FRAGMENT,
                 (
-                    texture_2d(wgpu::TextureSampleType::Float { filterable: true }),
-                    sampler(wgpu::SamplerBindingType::Filtering),
+                    texture_2d(TextureSampleType::Float { filterable: true }),
+                    sampler(SamplerBindingType::Filtering),
                 ),
             ),
         );
 
-        let sampler = render_device.create_sampler(&wgpu::SamplerDescriptor::default());
+        let sampler = render_device.create_sampler(&SamplerDescriptor::default());
 
         let shader = world.load_asset("shaders/post_processing.wgsl");
 
@@ -88,7 +88,7 @@ impl FromWorld for PostProcessPipeline {
                         shader_defs: vec![],
                         entry_point: "fragment".into(),
                         targets: vec![Some(ColorTargetState {
-                            format: wgpu::TextureFormat::bevy_default(),
+                            format: TextureFormat::bevy_default(),
                             blend: None,
                             write_mask: ColorWrites::ALL,
                         })],
@@ -132,28 +132,32 @@ impl ViewNode for PostProcessNode {
             return Ok(());
         };
 
-        let post_process = view_target.post_process_write();
+        for _ in 0..2 {
+            let post_process = view_target.post_process_write();
+            let bind_group = render_context.render_device().create_bind_group(
+                "后置处理绑定组",
+                &post_process_pipeline.layout,
+                &BindGroupEntries::sequential((
+                    post_process.source,
+                    &post_process_pipeline.sampler,
+                )),
+            );
 
-        let bind_group = render_context.render_device().create_bind_group(
-            "后置处理绑定组",
-            &post_process_pipeline.layout,
-            &BindGroupEntries::sequential((post_process.source, &post_process_pipeline.sampler)),
-        );
-
-        let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
-            label: Some("后置处理管道"),
-            color_attachments: &[Some(RenderPassColorAttachment {
-                view: post_process.destination,
-                resolve_target: None,
-                ops: Operations::default(),
-            })],
-            depth_stencil_attachment: None,
-            timestamp_writes: None,
-            occlusion_query_set: None,
-        });
-        render_pass.set_render_pipeline(pipeline);
-        render_pass.set_bind_group(0, &bind_group, &[]);
-        render_pass.draw(0..3, 0..1);
+            let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
+                label: Some("后置处理管道"),
+                color_attachments: &[Some(RenderPassColorAttachment {
+                    view: post_process.destination,
+                    resolve_target: None,
+                    ops: Operations::default(),
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+            render_pass.set_render_pipeline(pipeline);
+            render_pass.set_bind_group(0, &bind_group, &[]);
+            render_pass.draw(0..3, 0..1);
+        }
 
         Ok(())
     }

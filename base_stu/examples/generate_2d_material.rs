@@ -10,7 +10,10 @@ use bevy::{
     },
     math::Vec3,
     prelude::{Camera2d, Commands, Image, Mesh, Mesh2d, Rectangle, ResMut, Transform},
-    render::render_asset::RenderAssetUsages,
+    render::{
+        render_asset::RenderAssetUsages,
+        render_resource::{Extent3d, TextureDimension, TextureFormat},
+    },
     sprite::{ColorMaterial, MeshMaterial2d},
     DefaultPlugins,
 };
@@ -46,14 +49,14 @@ fn setup(
     }
     // 生成纹理
     let texture = Image::new(
-        wgpu::Extent3d {
+        Extent3d {
             width: width as u32,
             height: height as u32,
             depth_or_array_layers: 1,
         },
-        wgpu::TextureDimension::D2,
+        TextureDimension::D2,
         texture_data,
-        wgpu::TextureFormat::Rgba8Unorm,
+        TextureFormat::Rgba8Unorm,
         RenderAssetUsages::RENDER_WORLD,
     );
 

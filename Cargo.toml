@@ -1,5 +1,5 @@
 [workspace]
-members = ["base_stu", "ecs_base", "gld", "plugins_stu", "render_graph_stu"]
+members = ["base_stu", "ecs_base", "plugins_stu", "render_graph_stu"]
 resolver = "2"
 
 # Enable a small amount of optimization in debug mode
@@ -13,4 +13,4 @@ opt-level = 3
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-bevy = "0.15"
+bevy = "0.16"
