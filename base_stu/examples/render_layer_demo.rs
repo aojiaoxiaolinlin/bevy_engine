@@ -1,22 +1,10 @@
 use bevy::{
-    app::{App, Startup},
-    asset::Assets,
+    camera::visibility::RenderLayers,
     color::palettes::css::{RED, WHITE},
-    core_pipeline::core_2d::Camera2d,
-    ecs::system::{Commands, ResMut},
-    image::Image,
-    math::{primitives::Rectangle, Vec2, Vec3},
-    render::{
-        camera::Camera,
-        mesh::{Mesh, Mesh2d},
-        render_resource::{
-            Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
-        },
-        view::RenderLayers,
+    prelude::*,
+    render::render_resource::{
+        Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
     },
-    sprite::{ColorMaterial, MeshMaterial2d},
-    transform::components::Transform,
-    DefaultPlugins,
 };
 
 fn main() {

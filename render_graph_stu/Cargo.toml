@@ -1,8 +1,0 @@
-[package]
-name = "render_graph_stu"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-bevy = { workspace = true }
-bevy_mod_debugdump = "0.13"

@@ -1,25 +1,8 @@
 use std::f32::consts::PI;
 
 use bevy::{
-    app::{App, Startup, Update},
-    asset::Assets,
     color::palettes::css::{PURPLE, RED, WHITE, YELLOW},
-    core_pipeline::core_2d::Camera2d,
-    ecs::{
-        component::Component,
-        system::{Commands, Local, ResMut},
-    },
-    math::{
-        primitives::{Circle, Rectangle},
-        Quat, Vec3,
-    },
-    render::{
-        mesh::{Mesh, Mesh2d},
-        view::Visibility,
-    },
-    sprite::{ColorMaterial, MeshMaterial2d},
-    transform::components::Transform,
-    DefaultPlugins,
+    prelude::*,
 };
 
 fn main() {

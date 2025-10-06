@@ -1,34 +1,24 @@
 use bevy::{
-    app::{App, Plugin, Startup},
-    asset::{Assets, DirectAssetAccessExt},
-    color::{palettes::css::RED, Color},
+    color::palettes::css::RED,
     core_pipeline::{
         core_2d::graph::{Core2d, Node2d},
-        fullscreen_vertex_shader::fullscreen_shader_vertex_state,
+        FullscreenShader,
     },
-    image::BevyDefault,
-    math::Vec3,
-    prelude::{
-        Camera2d, Commands, Component, FromWorld, Mesh, Mesh2d, Rectangle, ResMut, Resource,
-        Transform,
-    },
+    prelude::*,
     render::{
         extract_component::{ExtractComponent, ExtractComponentPlugin},
-        render_graph::{RenderGraphApp, RenderLabel, ViewNode, ViewNodeRunner},
+        render_graph::{RenderGraphExt, RenderLabel, ViewNode, ViewNodeRunner},
         render_resource::{
             binding_types::{sampler, texture_2d},
             BindGroupEntries, BindGroupLayout, BindGroupLayoutEntries, CachedRenderPipelineId,
-            ColorTargetState, ColorWrites, FragmentState, MultisampleState, Operations,
-            PipelineCache, PrimitiveState, RenderPassColorAttachment, RenderPassDescriptor,
-            RenderPipelineDescriptor, Sampler, SamplerBindingType, SamplerDescriptor, ShaderStages,
-            TextureFormat, TextureSampleType,
+            ColorTargetState, ColorWrites, FragmentState, Operations, PipelineCache,
+            RenderPassColorAttachment, RenderPassDescriptor, RenderPipelineDescriptor, Sampler,
+            SamplerBindingType, SamplerDescriptor, ShaderStages, TextureFormat, TextureSampleType,
         },
         renderer::RenderDevice,
         view::ViewTarget,
-        RenderApp,
+        RenderApp, RenderStartup,
     },
-    sprite::{ColorMaterial, MeshMaterial2d},
-    DefaultPlugins,
 };
 
 fn main() {
@@ -58,55 +48,50 @@ struct PostProcessPipeline {
     pipeline_id: CachedRenderPipelineId,
 }
 
-impl FromWorld for PostProcessPipeline {
-    fn from_world(world: &mut bevy::prelude::World) -> Self {
-        let render_device = world.resource::<RenderDevice>();
-        let layout = render_device.create_bind_group_layout(
-            "后置处理绑定组",
-            &BindGroupLayoutEntries::sequential(
-                ShaderStages::VERTEX_FRAGMENT,
-                (
-                    texture_2d(TextureSampleType::Float { filterable: true }),
-                    sampler(SamplerBindingType::Filtering),
-                ),
+fn init_post_process_pipeline(
+    mut commands: Commands,
+    pipeline_cache: Res<PipelineCache>,
+    asset_load: Res<AssetServer>,
+    render_device: Res<RenderDevice>,
+    fullscreen_shader: Res<FullscreenShader>,
+) {
+    let layout = render_device.create_bind_group_layout(
+        "后置处理绑定组",
+        &BindGroupLayoutEntries::sequential(
+            ShaderStages::VERTEX_FRAGMENT,
+            (
+                texture_2d(TextureSampleType::Float { filterable: true }),
+                sampler(SamplerBindingType::Filtering),
             ),
-        );
+        ),
+    );
 
-        let sampler = render_device.create_sampler(&SamplerDescriptor::default());
+    let sampler = render_device.create_sampler(&SamplerDescriptor::default());
 
-        let shader = world.load_asset("shaders/post_processing.wgsl");
+    let shader = asset_load.load("shaders/post_processing.wgsl");
 
-        let pipeline_id =
-            world
-                .resource_mut::<PipelineCache>()
-                .queue_render_pipeline(RenderPipelineDescriptor {
-                    label: Some("后置处理管线".into()),
-                    layout: vec![layout.clone()],
-                    vertex: fullscreen_shader_vertex_state(),
-                    fragment: Some(FragmentState {
-                        shader,
-                        shader_defs: vec![],
-                        entry_point: "fragment".into(),
-                        targets: vec![Some(ColorTargetState {
-                            format: TextureFormat::bevy_default(),
-                            blend: None,
-                            write_mask: ColorWrites::ALL,
-                        })],
-                    }),
-                    primitive: PrimitiveState::default(),
-                    depth_stencil: None,
-                    multisample: MultisampleState::default(),
-                    push_constant_ranges: vec![],
-                    zero_initialize_workgroup_memory: false,
-                });
-        Self {
-            layout,
-            sampler,
-            pipeline_id,
-        }
-    }
+    let pipeline_id = pipeline_cache.queue_render_pipeline(RenderPipelineDescriptor {
+        label: Some("后置处理管线".into()),
+        layout: vec![layout.clone()],
+        vertex: fullscreen_shader.to_vertex_state(),
+        fragment: Some(FragmentState {
+            shader,
+            shader_defs: vec![],
+            targets: vec![Some(ColorTargetState {
+                format: TextureFormat::bevy_default(),
+                blend: None,
+                write_mask: ColorWrites::ALL,
+            })],
+            ..Default::default()
+        }),
+        ..Default::default()
+    });
+    commands.insert_resource(PostProcessPipeline {
+        layout,
+        sampler,
+        pipeline_id,
+    });
 }
-
 #[derive(Component, ExtractComponent, Clone)]
 struct PostProcessIdentify;
 
@@ -121,7 +106,7 @@ impl ViewNode for PostProcessNode {
         &self,
         _graph: &mut bevy::render::render_graph::RenderGraphContext,
         render_context: &mut bevy::render::renderer::RenderContext<'w>,
-        (view_target, _): bevy::ecs::query::QueryItem<'w, Self::ViewQuery>,
+        (view_target, _): bevy::ecs::query::QueryItem<'w, '_, Self::ViewQuery>,
         world: &'w bevy::prelude::World,
     ) -> Result<(), bevy::render::render_graph::NodeRunError> {
         let post_process_pipeline = world.resource::<PostProcessPipeline>();
@@ -149,6 +134,7 @@ impl ViewNode for PostProcessNode {
                     view: post_process.destination,
                     resolve_target: None,
                     ops: Operations::default(),
+                    depth_slice: None,
                 })],
                 depth_stencil_attachment: None,
                 timestamp_writes: None,
@@ -171,6 +157,9 @@ impl Plugin for PostProcessPlugin {
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
             return;
         };
+
+        render_app.add_systems(RenderStartup, init_post_process_pipeline);
+
         render_app
             .add_render_graph_node::<ViewNodeRunner<PostProcessNode>>(Core2d, PostProcessLabel)
             .add_render_graph_edges(
@@ -181,16 +170,5 @@ impl Plugin for PostProcessPlugin {
                     Node2d::EndMainPassPostProcessing,
                 ),
             );
-    }
-
-    fn finish(&self, app: &mut App) {
-        // We need to get the render app from the main app
-        let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
-            return;
-        };
-
-        render_app
-            // Initialize the pipeline
-            .init_resource::<PostProcessPipeline>();
     }
 }

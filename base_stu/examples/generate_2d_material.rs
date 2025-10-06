@@ -1,21 +1,11 @@
 use bevy::{
-    app::{App, Startup},
-    asset::Assets,
-    color::{
-        palettes::{
-            css::{GREEN, PURPLE, RED},
-            tailwind::BLUE_500,
-        },
-        Color, ColorToComponents,
+    asset::RenderAssetUsages,
+    color::palettes::{
+        css::{GREEN, PURPLE, RED},
+        tailwind::BLUE_500,
     },
-    math::Vec3,
-    prelude::{Camera2d, Commands, Image, Mesh, Mesh2d, Rectangle, ResMut, Transform},
-    render::{
-        render_asset::RenderAssetUsages,
-        render_resource::{Extent3d, TextureDimension, TextureFormat},
-    },
-    sprite::{ColorMaterial, MeshMaterial2d},
-    DefaultPlugins,
+    prelude::*,
+    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
 
 fn main() {
@@ -71,30 +61,8 @@ fn setup(
         })),
         Transform::from_scale(Vec3::splat(128.)),
     ));
-    let mut rect = Mesh::from(Rectangle::default());
-    let colors = vec![
-        Color::srgba_u8(216, 115, 15, 255)
-            .to_linear()
-            .to_f32_array(),
-        Color::srgba_u8(216, 115, 15, 255)
-            .to_linear()
-            .to_f32_array(),
-        Color::srgba_u8(216, 115, 15, 255)
-            .to_linear()
-            .to_f32_array(),
-        Color::srgba_u8(216, 115, 15, 255)
-            .to_linear()
-            .to_f32_array(),
-    ];
-    rect.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-    commands.spawn((
-        Mesh2d(meshes.add(rect)),
-        MeshMaterial2d(materials.add(ColorMaterial::default())),
-        Transform::from_scale(Vec3::splat(256.)).with_translation(Vec3::new(256., 0., 0.)),
-    ));
 
-    let mut rect = Mesh::from(Rectangle::default());
-    rect.insert_attribute(
+    let rect = Mesh::from(Rectangle::default()).with_inserted_attribute(
         Mesh::ATTRIBUTE_COLOR,
         vec![
             RED.to_f32_array(),
